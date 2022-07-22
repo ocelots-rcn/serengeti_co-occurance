@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<head>
+  <script src="./includes/axios.min.js" ></script>
+  <script src="./includes/slimselect.min.js"></script>
+  <link href="./includes/slimselect.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="./includes/leaflet.css" />
+  <script src="./includes/leaflet.js"></script>
+
+  <script>
+    const switchTab = (el) => {
+      let tabParent = el.parentElement;
+      let tabName = el.getAttribute("name");
+
+      // Cycle through tabs to change look
+      for (let child of tabParent.children) {
+        el == child ? child.style['background-color'] = '#EEE' : child.style['background-color'] = '#FFF';
+      };
+
+      // Cycle through content divs
+      for (let child of tabParent.parentElement.children) {
+        if(child.getAttribute("name") !== 'tabs') {
+          let divName = child.getAttribute("name");
+          tabName == divName ? child.style.display = 'block' : child.style.display = 'none';
+        }
+      };
+    }
+  </script>
+</head>
+
+<body style="overflow-x: hidden">
+  <div style="display: flex;flex-direction: row;">
+    <div style="width: 250px;padding: 5px">
+      <div name="tabs" style="display: flex;flex-direction: row;margin-bottom: 5px">
+        <div name="overview" style="flex: 1;padding: 10px;border: 1px solid #CCC;cursor: pointer;background-color: #EEE" onclick="switchTab(this)">Overview</div>
+        <div name="filters" style="flex: 1;padding: 10px;border: 1px solid #CCC;cursor: pointer" onclick="switchTab(this)">Filters</div>
+      </div>
+      <div name="overview">
+        <p style="font-size: 1.2em">Co-Occurance</p>
+      </div>
+      <div name="filters" style="display: none">
+        <span style="font-weight: bold">First Species</span><br />
+        <select id="OccuranceSpecies1" ></select><br />
+        <span style="font-weight: bold">Second Species</span><br />
+        <select id="OccuranceSpecies2"></select><br />
+        <hr>
+        <span style="font-weight: bold">Date Range</span><br />
+        <input id="OccuranceStart" type="date" value="2010-07-16" min="2010-07-16" max="2015-09-22" onChange="occurancePlot()" /><br />
+        to<br />
+        <input id="OccuranceEnd" type="date" value="2015-09-22" min="2010-07-16" max="2015-09-22" onChange="occurancePlot()" /><br />
+        <hr>
+        <span style="font-weight: bold">Variable</span><br />
+        <input name="occuranceVariable" type="radio" value="Amount of Shade" onClick="occurancePlot()" checked /><span>Amount of Shade</span><br />
+        <input name="occuranceVariable" type="radio" value="Distance to Confluence  m " onClick="occurancePlot()" /><span>Distance to Confluence (m)</span><br />
+        <input name="occuranceVariable" type="radio" value="Distance to Kopje  m " onClick="occurancePlot()" /><span>Distance to Kopje (m)</span><br />
+        <input name="occuranceVariable" type="radio" value="Distance to River  m " onClick="occurancePlot()" /><span>Distance to River (m)</span><br />
+        <input name="occuranceVariable" type="radio" value="Lion Risk  Dry " onClick="occurancePlot()" /><span>Lion Risk (Dry)</span><br />
+        <input name="occuranceVariable" type="radio" value="Lion Risk  Wet " onClick="occurancePlot()" /><span>Lion Risk (Wet)</span><br />
+        <input name="occuranceVariable" type="radio" value="SeasonalGreenness" onClick="occurancePlot()" /><span>Seasonal Greenness</span><br />
+        <input name="occuranceVariable" type="radio" value="Tree Density Measure" onClick="occurancePlot()" /><span>Tree Density Measure</span><br />
+      </div>
+    </div>
+    <div id="OccuranceMap" style="flex: 1;min-height: 500px"></div>
+  </div>
+
+</body>
+<script src="./co_occurance.js"></script>
+</html>
