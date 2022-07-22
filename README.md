@@ -1,3 +1,3 @@
-# Snapshot Serengeti Co-Occurance in Space and Time
+# Snapshot Serengeti Co-Occurrence in Space and Time
 ## Pure JavaScript Version
-https://ocelots-rcn.github.io/serengeti_co-occurance/js/
+https://ocelots-rcn.github.io/serengeti_co-occurrence/js/

@@ -1,9 +1,9 @@
-let occuranceData = {};
-let occuranceSpeciesList1 = null;
-let occuranceSpeciesList2 = null;
+let occurrenceData = {};
+let occurrenceSpeciesList1 = null;
+let occurrenceSpeciesList2 = null;
 
 // Set up make and helper functions
-const occuranceMap = L.map('OccuranceMap', {
+const occurrenceMap = L.map('OccurrenceMap', {
     center: [-2.5, 34.9],
     zoom: 11
 });
@@ -11,10 +11,10 @@ const occuranceMap = L.map('OccuranceMap', {
 const googleSat = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
     maxZoom: 20,
     subdomains:['mt0','mt1','mt2','mt3']
-}).addTo(occuranceMap);
+}).addTo(occurrenceMap);
 
-let occuranceLayer = L.layerGroup();
-occuranceLayer.addTo(occuranceMap);
+let occurrenceLayer = L.layerGroup();
+occurrenceLayer.addTo(occurrenceMap);
 
 let legend = null;
 //const ramp = ['#fafa6e', '#ffd24f', '#ffa942','#ff7e46','#f85252'];
@@ -45,57 +45,57 @@ const genLegend = (min, max, inc, variable) => {
         return div
     }
 
-    legend.addTo(occuranceMap);
+    legend.addTo(occurrenceMap);
 }
 
 // Grab the data
-axios.get('../data/co_occurance.json').then((response) => {
-    occuranceData = response.data;
+axios.get('../data/co_occurrence.json').then((response) => {
+    occurrenceData = response.data;
 
     // Populate selection list
-    let species1 = document.getElementById('OccuranceSpecies1');
-    let species2 = document.getElementById('OccuranceSpecies2');
-    Object.keys(occuranceData.species).sort().forEach( (val) => {
+    let species1 = document.getElementById('OccurrenceSpecies1');
+    let species2 = document.getElementById('OccurrenceSpecies2');
+    Object.keys(occurrenceData.species).sort().forEach( (val) => {
         let newOption = new Option(val, val);
         species1.add(newOption,undefined);
         newOption = new Option(val, val);
         species2.add(newOption,undefined);
     });
 
-    occuranceSpeciesList1 = new SlimSelect({
-        select: '#OccuranceSpecies1'
+    occurrenceSpeciesList1 = new SlimSelect({
+        select: '#OccurrenceSpecies1'
     });
 
-    occuranceSpeciesList2 = new SlimSelect({
-        select: '#OccuranceSpecies2'
+    occurrenceSpeciesList2 = new SlimSelect({
+        select: '#OccurrenceSpecies2'
     });
 
     // Needs a little delay
     setTimeout(() => {
-        occuranceSpeciesList1.set('baboon');
-        occuranceSpeciesList2.set('elephant');
-        species1.addEventListener('change', occurancePlot);
-        species2.addEventListener('change', occurancePlot);
-        occurancePlot();
+        occurrenceSpeciesList1.set('baboon');
+        occurrenceSpeciesList2.set('elephant');
+        species1.addEventListener('change', occurrencePlot);
+        species2.addEventListener('change', occurrencePlot);
+        occurrencePlot();
     }, 500);
     
 });
 
 // Update graph when selections changes
-const occurancePlot = () => {
-    let variable = document.querySelector('input[name=occuranceVariable]:checked').value;
-    let start = document.getElementById('OccuranceStart').value;
-    let end = document.getElementById('OccuranceEnd').value;
-    let species1 = occuranceSpeciesList1.selected();
-    let species2 = occuranceSpeciesList2.selected();
+const occurrencePlot = () => {
+    let variable = document.querySelector('input[name=occurrenceVariable]:checked').value;
+    let start = document.getElementById('OccurrenceStart').value;
+    let end = document.getElementById('OccurrenceEnd').value;
+    let species1 = occurrenceSpeciesList1.selected();
+    let species2 = occurrenceSpeciesList2.selected();
 
     let camera_sites = {}
     let total = {}
     // Build a local list of camera_sites
-    for(let site in occuranceData.camera_sites) {
+    for(let site in occurrenceData.camera_sites) {
         // Special case because there are two values unlike other site variables
         if(variable === 'SeasonalGreenness') {
-            occuranceData.camera_sites[site][variable] = null;
+            occurrenceData.camera_sites[site][variable] = null;
         }
         camera_sites[site] = {};
         camera_sites[site][species1] = 0;
@@ -108,8 +108,8 @@ const occurancePlot = () => {
     
     // Get species specific counts by site
     [species1, species2].forEach( species => {
-        for( let site in occuranceData.species[species]) {
-            occuranceData.species[species][site].forEach( data => {
+        for( let site in occurrenceData.species[species]) {
+            occurrenceData.species[species][site].forEach( data => {
                 if(start <= data.date && data.date <= end) {
                     camera_sites[site][species] += 1;
                     camera_sites[site]['SeasonalGreenness'].push(data.SeasonalGreenness);
@@ -124,17 +124,17 @@ const occurancePlot = () => {
         for(let site in camera_sites) {
             if(camera_sites[site][variable].length != 0) {
                 let array = camera_sites[site][variable];
-                occuranceData.camera_sites[site][variable] = array.reduce( (a, b) => (a + b), 0) / array.length;
+                occurrenceData.camera_sites[site][variable] = array.reduce( (a, b) => (a + b), 0) / array.length;
             }
         }
     }
     
     let vals = [];
     // Find the min max value of the variable across cameras
-    for(let site in occuranceData.camera_sites) {
+    for(let site in occurrenceData.camera_sites) {
         // special check for SeasonalGreenness
-        if(occuranceData.camera_sites[site][variable] !== null) {
-            vals.push(occuranceData.camera_sites[site][variable])
+        if(occurrenceData.camera_sites[site][variable] !== null) {
+            vals.push(occurrenceData.camera_sites[site][variable])
         }
     }
     let max = Math.max(...vals);
@@ -143,9 +143,9 @@ const occurancePlot = () => {
     
     // Generate legend and plot shaded camera locations
     genLegend(min, max, inc, variable);
-    occuranceLayer.clearLayers();
-    for(let id in occuranceData.camera_sites) {
-        let site = occuranceData.camera_sites[id];
+    occurrenceLayer.clearLayers();
+    for(let id in occurrenceData.camera_sites) {
+        let site = occurrenceData.camera_sites[id];
         
         let data = [0, 0];
         data[0] = camera_sites[id][species1];
@@ -156,7 +156,7 @@ const occurancePlot = () => {
             marker.bindPopup(`Camera Site: ${id}<br/><br />Observtions:<br/>[${species1}] ${camera_sites[id][species1]}<br/>[${species2}] ${camera_sites[id][species2]} `, {
                 closeButton: true
             });
-            occuranceLayer.addLayer(marker);
+            occurrenceLayer.addLayer(marker);
         }
     }
 }

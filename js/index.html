@@ -44,29 +44,29 @@
       </div>
       <div name="filters" style="display: none">
         <span style="font-weight: bold">First Species</span><br />
-        <select id="OccuranceSpecies1" ></select><br />
+        <select id="OccurrenceSpecies1" ></select><br />
         <span style="font-weight: bold">Second Species</span><br />
-        <select id="OccuranceSpecies2"></select><br />
+        <select id="OccurrenceSpecies2"></select><br />
         <hr>
         <span style="font-weight: bold">Date Range</span><br />
-        <input id="OccuranceStart" type="date" value="2010-07-16" min="2010-07-16" max="2015-09-22" onChange="occurancePlot()" /><br />
+        <input id="OccurrenceStart" type="date" value="2010-07-16" min="2010-07-16" max="2015-09-22" onChange="occurrencePlot()" /><br />
         to<br />
-        <input id="OccuranceEnd" type="date" value="2015-09-22" min="2010-07-16" max="2015-09-22" onChange="occurancePlot()" /><br />
+        <input id="OccurrenceEnd" type="date" value="2015-09-22" min="2010-07-16" max="2015-09-22" onChange="occurrencePlot()" /><br />
         <hr>
         <span style="font-weight: bold">Variable</span><br />
-        <input name="occuranceVariable" type="radio" value="Amount of Shade" onClick="occurancePlot()" checked /><span>Amount of Shade</span><br />
-        <input name="occuranceVariable" type="radio" value="Distance to Confluence  m " onClick="occurancePlot()" /><span>Distance to Confluence (m)</span><br />
-        <input name="occuranceVariable" type="radio" value="Distance to Kopje  m " onClick="occurancePlot()" /><span>Distance to Kopje (m)</span><br />
-        <input name="occuranceVariable" type="radio" value="Distance to River  m " onClick="occurancePlot()" /><span>Distance to River (m)</span><br />
-        <input name="occuranceVariable" type="radio" value="Lion Risk  Dry " onClick="occurancePlot()" /><span>Lion Risk (Dry)</span><br />
-        <input name="occuranceVariable" type="radio" value="Lion Risk  Wet " onClick="occurancePlot()" /><span>Lion Risk (Wet)</span><br />
-        <input name="occuranceVariable" type="radio" value="SeasonalGreenness" onClick="occurancePlot()" /><span>Seasonal Greenness</span><br />
-        <input name="occuranceVariable" type="radio" value="Tree Density Measure" onClick="occurancePlot()" /><span>Tree Density Measure</span><br />
+        <input name="occurrenceVariable" type="radio" value="Amount of Shade" onClick="occurrencePlot()" checked /><span>Amount of Shade</span><br />
+        <input name="occurrenceVariable" type="radio" value="Distance to Confluence  m " onClick="occurrencePlot()" /><span>Distance to Confluence (m)</span><br />
+        <input name="occurrenceVariable" type="radio" value="Distance to Kopje  m " onClick="occurrencePlot()" /><span>Distance to Kopje (m)</span><br />
+        <input name="occurrenceVariable" type="radio" value="Distance to River  m " onClick="occurrencePlot()" /><span>Distance to River (m)</span><br />
+        <input name="occurrenceVariable" type="radio" value="Lion Risk  Dry " onClick="occurrencePlot()" /><span>Lion Risk (Dry)</span><br />
+        <input name="occurrenceVariable" type="radio" value="Lion Risk  Wet " onClick="occurrencePlot()" /><span>Lion Risk (Wet)</span><br />
+        <input name="occurrenceVariable" type="radio" value="SeasonalGreenness" onClick="occurrencePlot()" /><span>Seasonal Greenness</span><br />
+        <input name="occurrenceVariable" type="radio" value="Tree Density Measure" onClick="occurrencePlot()" /><span>Tree Density Measure</span><br />
       </div>
     </div>
-    <div id="OccuranceMap" style="flex: 1;min-height: 500px"></div>
+    <div id="OccurrenceMap" style="flex: 1;min-height: 500px"></div>
   </div>
 
 </body>
-<script src="./co_occurance.js"></script>
+<script src="./co_occurrence.js"></script>
 </html>
