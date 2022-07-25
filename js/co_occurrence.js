@@ -16,36 +16,53 @@ const googleSat = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z
 let occurrenceLayer = L.layerGroup();
 occurrenceLayer.addTo(occurrenceMap);
 
-let legend = null;
+let varLegend = null;
+let speciesLegend = null;
 //const ramp = ['#fafa6e', '#ffd24f', '#ffa942','#ff7e46','#f85252'];
-const ramp = ['#6bdc33', '#e2bb00', '#ff8943','#ff64a3','#fd7dff'];
+const varRamp = ['#6bdc33', '#e2bb00', '#ff8943','#ff64a3','#fd7dff'];
+const speciesRamp =['#F50C16', '#0C58F5'];
 const gradient = (value, min, inc) => {
-
-    for(let i = 0; i < ramp.length; i++) {
+    for(let i = 0; i < varRamp.length; i++) {
         if((inc * (i+1)) + min > value) {
-            return ramp[i];
+            return varRamp[i];
         }
     }
-    return ramp[ramp.length - 1];
+    return varRamp[varRamp.length - 1];
 }
 
-const genLegend = (min, max, inc, variable) => {
-    if(legend !== null) {
-        legend.remove();
+const genSpeciesLegend = (sp1, sp2) => {
+    if(speciesLegend !== null) {
+        speciesLegend.remove();
     }
-    legend = L.control({ position: "bottomleft" });
-    legend.onAdd = function(map) {
-        var div = L.DomUtil.create("div", "legend");
+    speciesLegend = L.control({ position: "bottomleft" });
+    speciesLegend.onAdd = function(map) {
+        const div = L.DomUtil.create("div", "speciesLegend");
         div.style['background-color'] = '#fff';
         div.style.padding = '10px';
-        div.innerHTML += `<h4>${variable}</h4>`;
-        for(let i = 0; i < ramp.length; i++) {
-            div.innerHTML += `<i style="width: 18px;height: 18px;float: left;margin-right: 8px;background-color: ${ramp[i]}"></i>${(min + (inc * i)).toFixed(4)} &ndash; ${(min + (inc * (i+1))).toFixed(4)}<br />`;    
+        div.innerHTML += `<span style="font-size: 1.2em;font-weight: bold">Species</span><br/>`;
+        div.innerHTML += `<i style="width: 18px;height: 18px;float: left;margin-right: 8px;background-color: ${speciesRamp[0]}"></i>${sp1}<br />`;
+        div.innerHTML += `<i style="width: 18px;height: 18px;float: left;margin-right: 8px;background-color: ${speciesRamp[1]}"></i>${sp2}<br />`;
+        return div
+    }
+    speciesLegend.addTo(occurrenceMap);
+}
+
+const genVarLegend = (min, max, inc, variable) => {
+    if(varLegend !== null) {
+        varLegend.remove();
+    }
+    varLegend = L.control({ position: "bottomleft" });
+    varLegend.onAdd = function(map) {
+        const div = L.DomUtil.create("div", "varLegend");
+        div.style['background-color'] = '#fff';
+        div.style.padding = '10px';
+        div.innerHTML += `<span style="font-size: 1.2em;font-weight: bold">${variable}</span><br/>`;
+        for(let i = 0; i < varRamp.length; i++) {
+            div.innerHTML += `<i style="width: 18px;height: 18px;float: left;margin-right: 8px;background-color: ${varRamp[i]}"></i>${(min + (inc * i)).toFixed(4)} &ndash; ${(min + (inc * (i+1))).toFixed(4)}<br />`;    
         }
         return div
     }
-
-    legend.addTo(occurrenceMap);
+    varLegend.addTo(occurrenceMap);
 }
 
 // Grab the data
@@ -137,12 +154,15 @@ const occurrencePlot = () => {
             vals.push(occurrenceData.camera_sites[site][variable])
         }
     }
+    // Generate legend and plot shaded camera locations
     let max = Math.max(...vals);
     let min = Math.min(...vals);
-    let inc = (max - min) / ramp.length;
-    
-    // Generate legend and plot shaded camera locations
-    genLegend(min, max, inc, variable);
+    let inc = (max - min) / varRamp.length;
+    genVarLegend(min, max, inc, variable);
+    genSpeciesLegend(species1, species2);
+
+    let x_delta = null;
+    let shim = 0;
     occurrenceLayer.clearLayers();
     for(let id in occurrenceData.camera_sites) {
         let site = occurrenceData.camera_sites[id];
@@ -150,13 +170,34 @@ const occurrencePlot = () => {
         let data = [0, 0];
         data[0] = camera_sites[id][species1];
         data[1] = camera_sites[id][species2];
-        
+        total = data[0] + data[1];
+
         if(data[0] !== 0 || data[1] !== 0) {
-            let marker = L.circle([site.longitude, site.latitude], {radius: 800, color: gradient(site[variable], min, inc), weight: 2});
-            marker.bindPopup(`Camera Site: ${id}<br/><br />Observtions:<br/>[${species1}] ${camera_sites[id][species1]}<br/>[${species2}] ${camera_sites[id][species2]} `, {
+            let marker = L.circle([site.latitude, site.longitude], {radius: 800, color: gradient(site[variable], min, inc), weight: 2});
+            marker.bindPopup(`Camera Site: ${id}<br/><br />Observtions:<br/>[${species1}] ${camera_sites[id][species1]} (${((data[0]/total) *100).toFixed(2)}%)<br/>[${species2}] ${camera_sites[id][species2]} (${((data[1]/total) *100).toFixed(2)}%)`, {
                 closeButton: true
             });
             occurrenceLayer.addLayer(marker);
+
+            // Calulate bound
+            let bounds = marker.getBounds();
+            if(x_delta === null) {
+                shim = (bounds._northEast.lng - bounds._southWest.lng) * 0.05;
+                x_delta = (bounds._northEast.lng - bounds._southWest.lng) / 6.0;
+            }
+
+            // Keep rect off circle border
+            let yS = bounds._southWest.lat + shim; 
+            let yN =  bounds._northEast.lat - shim;
+
+            // Calculate height as a percentage of available space
+            let height = (yS - yN) * (data[0] / total);
+            let rect = L.rectangle([[yS - height, site.longitude + x_delta], [yS, site.longitude]], {color: speciesRamp[0], weight: 2, fillOpacity: 0.7});
+            occurrenceLayer.addLayer(rect);
+
+            height = (yS - yN) * (data[1] / total);
+            let rect2 = L.rectangle([[yS - height, site.longitude - 0.0001], [yS, site.longitude - x_delta - 0.0001]], {color: speciesRamp[1], weight: 2, fillOpacity: 0.7});
+            occurrenceLayer.addLayer(rect2);
         }
     }
 }
