@@ -8,13 +8,34 @@ const occurrenceMap = L.map('OccurrenceMap', {
     zoom: 11
 });
 
+let occurrenceLayer = L.layerGroup();
+occurrenceLayer.addTo(occurrenceMap);
+
 const googleSat = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
     maxZoom: 20,
     subdomains:['mt0','mt1','mt2','mt3']
 }).addTo(occurrenceMap);
 
-let occurrenceLayer = L.layerGroup();
-occurrenceLayer.addTo(occurrenceMap);
+const toggleLayer = (checkbbox) => {
+    if(checkbbox.checked) {
+        googleSat.addTo(occurrenceMap);
+    }
+    else {
+        googleSat.remove(occurrenceMap);
+    }
+}
+
+layerToggle = L.control({ position: "topright" });
+layerToggle.onAdd = function(map) {
+    const div = L.DomUtil.create("div", "toggleLayers");
+    div.style['background-color'] = '#fff';
+    div.style.padding = '10px';
+    div.innerHTML += `<span style="font-size: 1.2em;font-weight: bold">Layers</span><br/>`;
+    div.innerHTML += '<input type="checkbox" checked onchange="toggleLayer(this)" /> Satellite Layer' ;
+    return div
+}
+layerToggle.addTo(occurrenceMap);
+
 
 let varLegend = null;
 let speciesLegend = null;
