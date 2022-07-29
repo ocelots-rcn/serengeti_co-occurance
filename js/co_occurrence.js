@@ -8,8 +8,10 @@ const occurrenceMap = L.map('OccurrenceMap', {
     zoom: 11
 });
 
-let occurrenceLayer = L.layerGroup();
-occurrenceLayer.addTo(occurrenceMap);
+let variableLayer = L.layerGroup();
+variableLayer.addTo(occurrenceMap);
+let speciesLayer = L.layerGroup();
+speciesLayer.addTo(occurrenceMap);
 
 const googleSat = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
     maxZoom: 20,
@@ -31,7 +33,9 @@ layerToggle.onAdd = function(map) {
     div.style['background-color'] = '#fff';
     div.style.padding = '10px';
     div.innerHTML += `<span style="font-size: 1.2em;font-weight: bold">Layers</span><br/>`;
-    div.innerHTML += '<input type="checkbox" checked onchange="toggleLayer(this)" /> Satellite Layer' ;
+    div.innerHTML += '<input type="checkbox" checked onchange="toggleLayer(this)" /> Satellite Layer<br />' ;
+    div.innerHTML += '<input id="SpeciesLayer" type="checkbox" checked onchange="occurrencePlot()" /> Species<br />' ;
+    div.innerHTML += '<input id="VariableLayer" type="checkbox" checked onchange="occurrencePlot()" /> Variable' ;
     return div
 }
 layerToggle.addTo(occurrenceMap);
@@ -126,6 +130,8 @@ const occurrencePlot = () => {
     let end = document.getElementById('OccurrenceEnd').value;
     let species1 = occurrenceSpeciesList1.selected();
     let species2 = occurrenceSpeciesList2.selected();
+    let showSpeciesLayer = document.getElementById('SpeciesLayer').checked;
+    let showVariableLayer = document.getElementById('VariableLayer').checked;
 
     let camera_sites = {}
     let total = {}
@@ -184,7 +190,8 @@ const occurrencePlot = () => {
 
     let x_delta = null;
     let shim = 0;
-    occurrenceLayer.clearLayers();
+    variableLayer.clearLayers();
+    speciesLayer.clearLayers();
     for(let id in occurrenceData.camera_sites) {
         let site = occurrenceData.camera_sites[id];
         
@@ -195,30 +202,36 @@ const occurrencePlot = () => {
 
         if(data[0] !== 0 || data[1] !== 0) {
             let marker = L.circle([site.latitude, site.longitude], {radius: 800, color: gradient(site[variable], min, inc), weight: 2});
+            
             marker.bindPopup(`Camera Site: ${id}<br/><br />Observtions:<br/>[${species1}] ${camera_sites[id][species1]} (${((data[0]/total) *100).toFixed(2)}%)<br/>[${species2}] ${camera_sites[id][species2]} (${((data[1]/total) *100).toFixed(2)}%)`, {
                 closeButton: true
             });
-            occurrenceLayer.addLayer(marker);
+            variableLayer.addLayer(marker);
 
-            // Calulate bound
-            let bounds = marker.getBounds();
-            if(x_delta === null) {
-                shim = (bounds._northEast.lng - bounds._southWest.lng) * 0.05;
-                x_delta = (bounds._northEast.lng - bounds._southWest.lng) / 6.0;
+            if(showSpeciesLayer) {
+                // Calulate bound
+                let bounds = marker.getBounds();
+                if(x_delta === null) {
+                    shim = (bounds._northEast.lng - bounds._southWest.lng) * 0.05;
+                    x_delta = (bounds._northEast.lng - bounds._southWest.lng) / 6.0;
+                }
+
+                // Keep rect off circle border
+                let yS = bounds._southWest.lat + shim; 
+                let yN =  bounds._northEast.lat - shim;
+
+                // Calculate height as a percentage of available space
+                let height = (yS - yN) * (data[0] / total);
+                let rect = L.rectangle([[yS - height, site.longitude + x_delta], [yS, site.longitude]], {color: speciesRamp[0], weight: 2, fillOpacity: 0.7});
+                speciesLayer.addLayer(rect);
+
+                height = (yS - yN) * (data[1] / total);
+                let rect2 = L.rectangle([[yS - height, site.longitude - 0.0001], [yS, site.longitude - x_delta - 0.0001]], {color: speciesRamp[1], weight: 2, fillOpacity: 0.7});
+                speciesLayer.addLayer(rect2);
             }
-
-            // Keep rect off circle border
-            let yS = bounds._southWest.lat + shim; 
-            let yN =  bounds._northEast.lat - shim;
-
-            // Calculate height as a percentage of available space
-            let height = (yS - yN) * (data[0] / total);
-            let rect = L.rectangle([[yS - height, site.longitude + x_delta], [yS, site.longitude]], {color: speciesRamp[0], weight: 2, fillOpacity: 0.7});
-            occurrenceLayer.addLayer(rect);
-
-            height = (yS - yN) * (data[1] / total);
-            let rect2 = L.rectangle([[yS - height, site.longitude - 0.0001], [yS, site.longitude - x_delta - 0.0001]], {color: speciesRamp[1], weight: 2, fillOpacity: 0.7});
-            occurrenceLayer.addLayer(rect2);
+            if(!showVariableLayer) {
+                variableLayer.clearLayers();
+            }
         }
     }
 }
